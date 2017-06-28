@@ -1,10 +1,8 @@
 <template>
-  <canvas class="chartjs" :width="width" :height="height"></canvas>
+  <canvas v-if="componentDidMount" class="chartjs" :width="width" :height="height"></canvas>
 </template>
 
 <script>
-import Chart from 'chart.js' // With moment.js
-
 const types = ['line', 'bar', 'radar', 'polarArea', 'pie', 'doughnut']
 
 export default {
@@ -27,17 +25,26 @@ export default {
       default: () => ({})
     }
   },
+  
+  beforeMount() {
+    // needed for SSR
+    this.ChartJS = require('chart.js') // With moment.js
+  },
 
   mounted () {
-    this.chart = new Chart(this.$el, {
+    this.chart = new this.ChartJS(this.$el, {
       type: this.type,
       data: this.data,
       options: this.options
     })
+    
+    this.componentDidMount = true
   },
 
   data () {
     return {
+      componentDidMount: false,
+      ChartJS: null,
       chart: null
     }
   },
@@ -46,7 +53,7 @@ export default {
     resetChart () {
       this.$nextTick(() => {
         this.chart.destroy()
-        this.chart = new Chart(this.$el, {
+        this.chart = new this.ChartJS(this.$el, {
           type: this.type,
           data: this.data,
           options: this.options
